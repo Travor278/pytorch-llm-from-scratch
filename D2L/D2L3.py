@@ -1,4 +1,4 @@
-#%%
+#%% # 线性代数
 import torch
 
 x = torch.tensor([3.0])
