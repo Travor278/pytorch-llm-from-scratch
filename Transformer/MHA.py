@@ -13,6 +13,7 @@
 # 1. 先用 $QK^T$ 计算每个位置之间的相关性分数
 # 2. 再经过 softmax 变成注意力权重
 # 3. 最后用这些权重对 $V$ 做加权求和
+# <img src="./Transformer/Multi_Head_Attention.png" height="320">
 
 # %% [markdown]
 # ## 为什么要除以 $\sqrt{d_k}$
@@ -23,6 +24,39 @@
 # \frac{QK^T}{\sqrt{d_k}}
 # $$
 # 这相当于把分数拉回到更合适的数值范围，让 softmax 更稳定。
+# 一个常见的近似推导是：
+# $$
+# X_i = q_i k_i
+# $$
+# 如果假设每个分量近似满足：
+# - 均值为 0
+# - 方差为 1
+# - 各维之间近似独立
+# 那么有：
+# $$
+# \mathbb{E}[X_i] = 0
+# $$
+# $$
+# \mathrm{Var}(X_i) = 1
+# $$
+# 而点积可以写成：
+# $$
+# q \cdot k = \sum_{i=1}^{d_k} X_i
+# $$
+# 因此：
+# $$
+# \mathrm{Var}(q \cdot k) \approx d_k
+# $$
+# 所以它的标准差大约是：
+# $$
+# \sqrt{d_k}
+# $$
+# 缩放之后就有：
+# $$
+# \mathrm{Var}\left(\frac{q \cdot k}{\sqrt{d_k}}\right) \approx 1
+# $$
+# 这就是除以 $\sqrt{d_k}$ 的核心理由：让 attention score 的尺度在不同维度下保持稳定。
+# <img src="./Transformer/Scaled_Dot_Product_Attention.png" height="320">
 
 # %% [markdown]
 # ## 为什么叫Multi-Head
@@ -54,7 +88,7 @@ def scaled_dot_product_attention(
     key: torch.Tensor,   # 键向量，表示“每个位置能提供什么信息”
     value: torch.Tensor, # 值向量，表示”真正被聚合输出的内容“
     mask: torch.Tensor | None = None,
-    dropout: nn.Dropout | None = None,
+    dropout: nn.Dropout | None = None, # 方便传参和调用
 ) -> tuple[torch.Tensor, torch.Tensor]:
     """
     query, key, value shape: (batch_size, num_heads, seq_len, d_k)
@@ -82,7 +116,7 @@ def scaled_dot_product_attention(
     output = torch.matmul(attn_weights, value)
     return output, attn_weights
     # ouput.shape: (batch_size, num_heads, seq_len, d_k)
-    # attn_weights.shape: (batch_size, num_heads, seq_len, seq_len
+    # attn_weights.shape: (batch_size, num_heads, seq_len, seq_len)
 
 
 def make_causal_mask(seq_len: int, device: torch.device | str = "cpu") -> torch.Tensor:
@@ -137,6 +171,7 @@ class MultiHeadAttention(nn.Module):
 
     def _merge_heads(self, x: torch.Tensor) -> torch.Tensor:
         """
+        实现了Concat(head_1,..., head_h)的张良重排与拼接
         x shape: (batch_size, num_heads, seq_len, d_k)
         return : (batch_size, seq_len, d_model)
         """
