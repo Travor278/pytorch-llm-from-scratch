@@ -2,13 +2,15 @@
 
 # PyTorch Learning Notes
 
-From-scratch PyTorch study notes covering seven tracks:
+From-scratch PyTorch study notes covering nine tracks:
 - Autograd fundamentals (`00` to `08`)
 - Dataset / DataLoader / TensorBoard practice
 - `nn.Module` layers, loss functions, and network building
 - Model saving, loading, and pretrained models
 - Full training loop on CPU and GPU
 - Advanced topic modules: training engineering, loss functions, model architecture, PEFT, generative models, evaluation & inference, multimodal
+- Transformer (Encoder-Decoder, paper reproduction from scratch)
+- GPT (Decoder-only LLM with RoPE, KV Cache, BPE tokenizer)
 
 ## Project Structure
 
@@ -77,24 +79,7 @@ From-scratch PyTorch study notes covering seven tracks:
 |------|-------------|
 | `Console.py` | Simple CUDA availability and `torch` API quick inspection snippets |
 
-## Datasets and Local Paths
-
-- `data/`: MNIST
-- `dataset/`: hymenoptera (ants vs bees)
-- `dataset2/`: CIFAR-10
-
-Datasets, TensorBoard logs, and trained `.pth` model files are intentionally excluded from git via `.gitignore`.
-
-## Requirements
-
-- Python 3.x
-- PyTorch
-- torchvision
-- TensorBoard
-
-```bash
-pip install torch torchvision tensorboard
-```
+---
 
 ### 7) Advanced Topic Modules
 
@@ -137,7 +122,7 @@ pip install torch torchvision tensorboard
 | File | Description |
 |------|-------------|
 | `vae_basics.py` | ELBO derivation, reparameterization trick `z = μ + σε`, KL analytical solution, β-VAE |
-| `diffusion_basics.py` | DDPM forward process `q(x_t|x_0)`, noise prediction loss `L_simple`, sinusoidal time embedding, ancestral sampling |
+| `diffusion_basics.py` | DDPM forward process `q(x_t\|x_0)`, noise prediction loss `L_simple`, sinusoidal time embedding, ancestral sampling |
 | `gan_training.py` | GAN minimax objective, non-saturating loss, training loop, mode collapse analysis, WGAN-GP gradient penalty |
 
 #### `evaluation_inference/`
@@ -154,11 +139,88 @@ pip install torch torchvision tensorboard
 | `clip_contrastive.py` | CLIP symmetric InfoNCE, learnable temperature `logit_scale`, zero-shot classification, role in LLaVA / SEED |
 | `cross_attention.py` | Cross-attention Q/K/V from different modalities, gated cross-attention (Flamingo 2022), Q-Former (BLIP-2 2023) |
 
+---
+
+### 8) Transformer/
+
+Complete Encoder-Decoder Transformer reproduced from *Attention Is All You Need* (Vaswani et al. 2017), implemented as annotated notebooks.
+
+| File | Description |
+|------|-------------|
+| `MHA.py` | Multi-head attention from scratch: Q/K/V projection, scaled dot-product, head split/merge, attention weight output |
+| `FFN.py` | Position-wise Feed Forward Network: two linear layers with ReLU, dimension expansion from `d_model` to `d_ff` |
+| `PostionalEncoding.py` | Sinusoidal positional encoding: sine/cosine at alternating dimensions, added to token embeddings |
+| `create_mask.py` | Three mask types explained and implemented: source padding mask, target causal mask, memory mask |
+| `Encoder.py` | Encoder layer (bidirectional self-attention + FFN + Add&Norm); stacked into full Encoder |
+| `Decoder.py` | Decoder layer (masked self-attention + cross-attention + FFN + Add&Norm); stacked into full Decoder |
+| `Transformer.py` | Full Encoder-Decoder Transformer assembled from the above modules; includes a Generator (linear + log-softmax) output head |
+| `train.py` | Train on a small parallel text corpus (`data/parallel_toy.tsv`): build vocabulary, teacher-forcing training loop, mask construction |
+| `test.py` | Shape and forward-pass tests for MHA, mask utilities, and the full Transformer |
+
+---
+
+### 9) GPT/
+
+Decoder-only GPT language model trained on classical Chinese text (~400k characters). All components implemented from scratch.
+
+| File | Description |
+|------|-------------|
+| `MHA.py` | Causal multi-head self-attention with optional RoPE on Q/K; returns attention weights; supports KV cache (`past_kv`) |
+| `RoPE.py` | Rotary Position Embedding: `rotate_half` using LLaMA-style pairing, precomputed `cos`/`sin` tables, applied to Q and K |
+| `FFN.py` | Feed-forward block with GELU activation and configurable `d_ff` hidden dimension |
+| `GPTBlock.py` | Pre-LN decoder block: LayerNorm → self-attention → residual; LayerNorm → FFN → residual; passes through KV cache |
+| `GPT.py` | Full GPT model: token embedding + optional learned positional embedding (fallback when `use_rope=False`), stacked `GPTBlock`s, final LayerNorm, weight-tied `lm_head` |
+| `create_mask.py` | Causal mask utility (`make_causal_mask`): upper-triangular boolean mask for autoregressive decoding |
+| `tokenizer.py` | `CharTokenizer`: character-level tokenizer; special tokens pad/bos/eos/unk, `min_freq` filtering, save/load to JSON |
+| `bpe_tokenizer.py` | `BPETokenizer`: Byte Pair Encoding tokenizer trained on corpus; incremental pair-count updates for fast training; greedy priority merge for encoding; save/load to JSON |
+| `train_gpt.py` | Training script: cosine LR warmup (`get_lr`), tqdm progress bar, char or BPE tokenizer selection (`--tokenizer`), checkpoint save/resume, gradient clipping |
+| `sample.py` | Generation script: KV-cache autoregressive decoding, temperature scaling, top-k filtering, top-p (nucleus) sampling |
+| `test_gpt.py` | Unit tests: GELU activation, weight tying, Pre-LN block behavior, forward shapes, RoPE correctness, KV cache vs full-forward equivalence |
+
+#### Training
+
+```bash
+# Character-level tokenizer
+python GPT/train_gpt.py --text-path GPT/_train_text_large.txt --device cpu --max-steps 2000
+
+# BPE tokenizer (recommended)
+python GPT/train_gpt.py --text-path GPT/_train_text_large.txt \
+  --tokenizer bpe --bpe-vocab-size 8500 \
+  --d-model 256 --num-heads 8 --num-layers 6 --d-ff 1024 \
+  --device cpu --max-steps 2000
+```
+
+#### Sampling
+
+```bash
+python GPT/sample.py --ckpt GPT/checkpoints/gpt_char_best.pt \
+  --prompt "春风" --temperature 0.8 --top-p 0.9 --max-new-tokens 120
+```
+
+---
+
+## Datasets and Local Paths
+
+- `data/`: MNIST
+- `dataset/`: hymenoptera (ants vs bees)
+- `dataset2/`: CIFAR-10
+- `GPT/_train_text_large.txt`: ~400k characters of classical Chinese (四书五经, 宋词, 全唐诗)
+
+Datasets, TensorBoard logs, and trained model files are excluded from git via `.gitignore`.
+
+## Requirements
+
+```bash
+pip install torch torchvision tensorboard tqdm
+```
+
 ## Suggested Learning Path
 
-1. Start with `00` -> `08` (Autograd core).
-2. Move to transforms/dataset scripts (`test_Tf.py`, `Useful_TF.py`, `read_data.py`, `dataset_transform.py`).
-3. Continue with batching and visualization (`dataloader.py`, `test_tb.py`).
-4. Work through `nn` modules: activations & pooling → convolution → linear → Sequential → loss functions → optimizer → common layers.
-5. Study model persistence: `model_save.py` → `model_load.py` → `model_pretrained.py`.
-6. Run a full training loop: `train.py` (CPU) → `train_gpu_1.py` → `train_gpu_2.py` (recommended GPU pattern).
+1. `00` → `08`: Autograd core
+2. Transforms / Dataset scripts → DataLoader / TensorBoard
+3. `nn` layers: activations → convolution → linear → Sequential → loss → optimizer → common layers
+4. Model persistence: `model_save.py` → `model_load.py` → `model_pretrained.py`
+5. Full training loop: `train.py` (CPU) → `train_gpu_1.py` → `train_gpu_2.py`
+6. Advanced modules: `training_engineering/`, `model_architecture/`, `loss_functions/`, `peft/`, `generative_models/`, `evaluation_inference/`, `multimodal/`
+7. `Transformer/`: build an Encoder-Decoder Transformer from the paper
+8. `GPT/`: build a Decoder-only GPT, train on real text, generate samples

@@ -181,7 +181,7 @@ def main() -> None:
     device = torch.device(args.device)
     text = read_text(args.text_path)
 
-    # ── 构建 tokenizer ─────────────────────────────────────────────────────
+    # 构建 tokenizer
     if args.tokenizer == "bpe":
         # BPE：先统计初始字符数，再决定目标词表大小
         init_vocab = len(set(text)) + len(("  <pad>", "<bos>", "<eos>", "<unk>"))
@@ -272,7 +272,7 @@ def main() -> None:
     )
 
     for step in pbar:
-        # ── cosine warmup ────────────────────────────────────────────────────
+        # cosine warmup
         lr = get_lr(step, args.warmup_steps, args.max_steps, args.lr, args.min_lr)
         for param_group in optimizer.param_groups:
             param_group["lr"] = lr

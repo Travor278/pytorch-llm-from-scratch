@@ -2,13 +2,15 @@
 
 # PyTorch 学习笔记
 
-这是一个从零开始的 PyTorch 学习仓库，当前覆盖七条线：
+这是一个从零开始的 PyTorch 学习仓库，当前覆盖九条线：
 - Autograd 核心原理（`00` 到 `08`）
 - Dataset / DataLoader / TensorBoard 数据流实践
 - `nn.Module` 各类层、损失函数与完整网络搭建
 - 模型保存、加载与预训练模型使用
 - CPU / GPU 完整训练流程
 - 进阶专题模块：训练工程、损失函数、模型架构、参数高效微调、生成模型、评估推理、多模态
+- Transformer（Encoder-Decoder，从论文从头实现）
+- GPT（Decoder-only 语言模型，含 RoPE / KV Cache / BPE tokenizer）
 
 ## 目录结构
 
@@ -77,24 +79,7 @@
 |------|------|
 | `Console.py` | 快速检查 CUDA 可用性与 `torch` API 的交互式小脚本 |
 
-## 数据集与本地目录
-
-- `data/`：MNIST
-- `dataset/`：hymenoptera（ants vs bees）
-- `dataset2/`：CIFAR-10
-
-数据集、TensorBoard 日志和训练生成的 `.pth` 模型文件体积较大，已通过 `.gitignore` 排除，不会提交到 GitHub。
-
-## 环境
-
-- Python 3.x
-- PyTorch
-- torchvision
-- TensorBoard
-
-```bash
-pip install torch torchvision tensorboard
-```
+---
 
 ### 7）进阶专题模块
 
@@ -137,7 +122,7 @@ pip install torch torchvision tensorboard
 | 文件 | 说明 |
 |------|------|
 | `vae_basics.py` | ELBO 推导、重参数技巧 `z = μ + σε`、KL 解析解、β-VAE |
-| `diffusion_basics.py` | DDPM 前向过程 `q(x_t|x_0)`、噪声预测损失 `L_simple`、正弦时间嵌入、祖先采样 |
+| `diffusion_basics.py` | DDPM 前向过程 `q(x_t\|x_0)`、噪声预测损失 `L_simple`、正弦时间嵌入、祖先采样 |
 | `gan_training.py` | GAN 极大极小目标、非饱和损失、训练循环、模式崩塌分析、WGAN-GP 梯度惩罚 |
 
 #### `evaluation_inference/`（评估与推理）
@@ -154,11 +139,88 @@ pip install torch torchvision tensorboard
 | `clip_contrastive.py` | CLIP 双向 InfoNCE、可学习温度 `logit_scale`、零样本分类、在 LLaVA/SEED 中的角色 |
 | `cross_attention.py` | 跨模态 Cross-Attention、门控交叉注意力（Flamingo 2022）、Q-Former（BLIP-2 2023） |
 
+---
+
+### 8）Transformer/
+
+从头实现 *Attention Is All You Need*（Vaswani et al. 2017）的 Encoder-Decoder Transformer，以带注释的 notebook 形式呈现。
+
+| 文件 | 说明 |
+|------|------|
+| `MHA.py` | 多头注意力从头实现：Q/K/V 投影、Scaled Dot-Product、head 拆分与合并、输出注意力权重 |
+| `FFN.py` | Position-wise 前馈网络：两层线性 + ReLU，维度从 `d_model` 扩张到 `d_ff` |
+| `PostionalEncoding.py` | 正弦位置编码：奇偶维度分别用 sin/cos，加到 token embedding 上 |
+| `create_mask.py` | 三种掩码原理与实现：源序列 padding mask、目标序列因果 mask、memory mask |
+| `Encoder.py` | Encoder Layer（双向 self-attention + FFN + Add&Norm）；堆叠成完整 Encoder |
+| `Decoder.py` | Decoder Layer（masked self-attention + cross-attention + FFN + Add&Norm）；堆叠成完整 Decoder |
+| `Transformer.py` | 将上述模块拼接成完整 Encoder-Decoder Transformer；包含 Generator（线性 + log-softmax）输出头 |
+| `train.py` | 在小型平行语料（`data/parallel_toy.tsv`）上训练：构建词表、teacher forcing 训练循环、掩码构造 |
+| `test.py` | MHA、掩码工具函数及完整 Transformer 的形状与前向传播测试 |
+
+---
+
+### 9）GPT/
+
+Decoder-only GPT 语言模型，在约 40 万字古典汉语文本上训练，所有组件均从头实现。
+
+| 文件 | 说明 |
+|------|------|
+| `MHA.py` | 因果多头自注意力：Q/K 上可选 RoPE，返回注意力权重，支持 KV Cache（`past_kv`） |
+| `RoPE.py` | 旋转位置编码：`rotate_half` 使用 LLaMA 风格配对，预计算 `cos`/`sin` 表，作用于 Q 和 K |
+| `FFN.py` | 前馈模块：GELU 激活，可配置 `d_ff` 隐藏维度 |
+| `GPTBlock.py` | Pre-LN Decoder Block：LayerNorm → 自注意力 → 残差；LayerNorm → FFN → 残差；透传 KV Cache |
+| `GPT.py` | 完整 GPT 模型：token embedding + 可选 Learned PE（`use_rope=False` 时的 fallback），堆叠 `GPTBlock`，最终 LayerNorm，权重绑定 `lm_head` |
+| `create_mask.py` | 因果掩码工具（`make_causal_mask`）：上三角 bool 掩码，用于自回归解码 |
+| `tokenizer.py` | `CharTokenizer`：字符级 tokenizer，含 pad/bos/eos/unk 特殊 token，`min_freq` 过滤，保存/加载为 JSON |
+| `bpe_tokenizer.py` | `BPETokenizer`：在语料上训练 BPE；增量更新 pair_counts 提升训练速度；贪心优先合并编码；保存/加载为 JSON |
+| `train_gpt.py` | 训练脚本：cosine LR warmup（`get_lr`）、tqdm 进度条、char/BPE tokenizer 切换（`--tokenizer`）、checkpoint 保存与恢复、梯度裁剪 |
+| `sample.py` | 生成脚本：KV Cache 自回归解码、温度缩放、top-k 过滤、top-p（nucleus）采样 |
+| `test_gpt.py` | 单元测试：GELU 激活、权重绑定、Pre-LN block 行为、前向形状、RoPE 正确性、KV Cache 与全量前向等价性 |
+
+#### 训练
+
+```bash
+# 字符级 tokenizer
+python GPT/train_gpt.py --text-path GPT/_train_text_large.txt --device cpu --max-steps 2000
+
+# BPE tokenizer（推荐）
+python GPT/train_gpt.py --text-path GPT/_train_text_large.txt \
+  --tokenizer bpe --bpe-vocab-size 8500 \
+  --d-model 256 --num-heads 8 --num-layers 6 --d-ff 1024 \
+  --device cpu --max-steps 2000
+```
+
+#### 采样
+
+```bash
+python GPT/sample.py --ckpt GPT/checkpoints/gpt_char_best.pt \
+  --prompt "春风" --temperature 0.8 --top-p 0.9 --max-new-tokens 120
+```
+
+---
+
+## 数据集与本地目录
+
+- `data/`：MNIST
+- `dataset/`：hymenoptera（ants vs bees）
+- `dataset2/`：CIFAR-10
+- `GPT/_train_text_large.txt`：约 40 万字古典汉语文本（四书五经、宋词、全唐诗）
+
+数据集、TensorBoard 日志和训练生成的模型文件体积较大，已通过 `.gitignore` 排除，不会提交到 GitHub。
+
+## 环境
+
+```bash
+pip install torch torchvision tensorboard tqdm
+```
+
 ## 推荐学习顺序
 
-1. 先按 `00` → `08` 学完 Autograd 主线。
-2. 再看 transforms / dataset 相关脚本（`test_Tf.py`、`Useful_TF.py`、`read_data.py`、`dataset_transform.py`）。
-3. 接着学习批处理和可视化（`dataloader.py`、`test_tb.py`）。
-4. 学习 nn 模块，按顺序：激活与池化 → 卷积 → 全连接 → Sequential 组网 → 损失函数 → 优化器 → 常用层。
-5. 学习模型保存与加载（`model_save.py`、`model_load.py`、`model_pretrained.py`）。
-6. 最后跑完整训练流程：`train.py`（CPU）→ `train_gpu_1.py` → `train_gpu_2.py`（推荐 GPU 写法）。
+1. `00` → `08`：Autograd 主线
+2. transforms / dataset 脚本 → DataLoader / TensorBoard
+3. `nn` 各层：激活与池化 → 卷积 → 全连接 → Sequential → 损失函数 → 优化器 → 常用层
+4. 模型保存与加载：`model_save.py` → `model_load.py` → `model_pretrained.py`
+5. 完整训练流程：`train.py`（CPU）→ `train_gpu_1.py` → `train_gpu_2.py`
+6. 进阶专题：`training_engineering/`、`model_architecture/`、`loss_functions/`、`peft/`、`generative_models/`、`evaluation_inference/`、`multimodal/`
+7. `Transformer/`：从论文从头搭建 Encoder-Decoder Transformer
+8. `GPT/`：搭建 Decoder-only GPT，在真实文本上训练，生成采样
