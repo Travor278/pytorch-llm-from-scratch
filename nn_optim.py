@@ -7,6 +7,9 @@ from torch.nn import MaxPool2d
 from torch.nn import Flatten
 from torch.nn import Linear
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print("当前运行设备：{}".format(device))
+
 dataset = torchvision.datasets.CIFAR10(root="./dataset2", train=False, download=True,
                                        transform=torchvision.transforms.ToTensor())
 
@@ -33,13 +36,17 @@ class Moli(nn.Module):
     
 loss = nn.CrossEntropyLoss()
 moli = Moli()
+moli = moli.to(device)
+loss = loss.to(device)
 optim = torch.optim.SGD(moli.parameters(), lr=0.01)
 for epoch in range(20):
     running_loss = 0.0
     for data in dataloader:
         imgs, targets = data
+        imgs = imgs.to(device)
+        targets = targets.to(device)
         outputs = moli(imgs)
-        result_loss = nn.CrossEntropyLoss()(outputs, targets)
+        result_loss = loss(outputs, targets)
         optim.zero_grad()  # 梯度清零
         result_loss.backward()  # 反向传播计算梯度
         optim.step()  # 更新参数

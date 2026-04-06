@@ -4,6 +4,9 @@ from torch import nn
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print("当前运行设备：{}".format(device))
+
 dataset = torchvision.datasets.CIFAR10(root="./dataset2", train=False, transform=torchvision.transforms.ToTensor(), 
                                        download=True)
 dataloader = DataLoader(dataset, batch_size=64)
@@ -18,6 +21,7 @@ class Moli(nn.Module):
         return x
     
 moli = Moli()
+moli = moli.to(device)
 print(moli)
 
 writer = SummaryWriter("logs")
@@ -25,13 +29,14 @@ writer = SummaryWriter("logs")
 step = 0
 for data in dataloader:
     imgs, targets = data
+    imgs = imgs.to(device)
     output = moli(imgs)
     print(imgs.shape)
     print(output.shape)
     # torch.Size([64, 3, 32, 32])
-    writer.add_images("input", imgs, step)
+    writer.add_images("input", imgs.cpu(), step)
     # torch.Size([64, 6, 30, 30]) -> [xxx, 3, 30, 30]
-    output = torch.reshape(output, (-1, 3, 30, 30))
+    output = torch.reshape(output, (-1, 3, 30, 30)).cpu()
     writer.add_images("output", output, step)
 
     step = step + 1

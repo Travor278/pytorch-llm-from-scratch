@@ -80,12 +80,13 @@ print("=== 显存对比 ===")
 
 if torch.cuda.is_available():
     d = 512
-    blks = nn.ModuleList([TransformerBlock(d) for _ in range(24)]).cuda()
+    device = torch.device("cuda")
+    blks = nn.ModuleList([TransformerBlock(d) for _ in range(24)]).to(device)
 
     def measure_memory(use_ckpt):
         torch.cuda.empty_cache()
         torch.cuda.reset_peak_memory_stats()
-        xi = torch.randn(8, 128, d, device='cuda', requires_grad=True)
+        xi = torch.randn(8, 128, d, device=device, requires_grad=True)
         if use_ckpt:
             for blk in blks:
                 xi = checkpoint.checkpoint(blk, xi, use_reentrant=False)

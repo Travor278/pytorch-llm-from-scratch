@@ -4,6 +4,9 @@ from torch import nn
 from torch.nn import Linear
 from torch.utils.data import DataLoader
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print("当前运行设备：{}".format(device))
+
 dataset = torchvision.datasets.CIFAR10("dataset2", train=False, download=True,
                                        transform=torchvision.transforms.ToTensor())
 
@@ -19,10 +22,12 @@ class Moli(nn.Module):
         return output
     
 moli = Moli()
+moli = moli.to(device)
 
 
 for data in dataloader:
     imgs, targets = data
+    imgs = imgs.to(device)
     print(imgs.shape)
     output = torch.flatten(imgs)
     print(output.shape)

@@ -1,10 +1,14 @@
 import torchvision
+import torch
 from torch import nn
 from torch.utils.data import DataLoader
 from torch.nn import Conv2d
 from torch.nn import MaxPool2d
 from torch.nn import Flatten
 from torch.nn import Linear
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print("当前运行设备：{}".format(device))
 
 dataset = torchvision.datasets.CIFAR10(root="./dataset2", train=False, download=True,
                                        transform=torchvision.transforms.ToTensor())
@@ -31,9 +35,13 @@ class Moli(nn.Module):
         return x
 
 moli = Moli()
+moli = moli.to(device)
+loss_fn = nn.CrossEntropyLoss().to(device)
 for data in dataloader:
     imgs, targets = data
+    imgs = imgs.to(device)
+    targets = targets.to(device)
     outputs = moli(imgs)
-    result_loss = nn.CrossEntropyLoss()(outputs, targets)
+    result_loss = loss_fn(outputs, targets)
     result_loss.backward()  # 反向传播计算梯度
     print("ok")

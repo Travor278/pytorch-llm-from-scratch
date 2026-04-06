@@ -134,8 +134,9 @@ print("=== 性能对比（需 CUDA）===")
 
 if torch.cuda.is_available():
     SIZE  = 2048
-    model_large = nn.Linear(SIZE, SIZE).cuda()
-    x_in  = torch.randn(256, SIZE, device='cuda')
+    device = torch.device("cuda")
+    model_large = nn.Linear(SIZE, SIZE).to(device)
+    x_in  = torch.randn(256, SIZE, device=device)
 
     # FP32 基准
     torch.cuda.synchronize()

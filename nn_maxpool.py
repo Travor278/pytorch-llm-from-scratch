@@ -5,6 +5,9 @@ from torch.nn import MaxPool2d
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print("当前运行设备：{}".format(device))
+
 dataset = torchvision.datasets.CIFAR10(root="./dataset2", train=False, download=True, 
                                        transform=torchvision.transforms.ToTensor())
 
@@ -32,6 +35,7 @@ class Moli(nn.Module):
         return output
     
 moli = Moli()
+moli = moli.to(device)
 
 writer = SummaryWriter("logs_maxpool")
 
@@ -39,7 +43,8 @@ step = 0
 for data in dataloader:
     imgs, targets = data
     writer.add_images("input", imgs, step)
-    output = moli(imgs)
+    imgs = imgs.to(device)
+    output = moli(imgs).cpu()
     writer.add_images("output", output, step)
     step += 1
 

@@ -6,6 +6,9 @@ from torch.nn import Flatten
 from torch.nn import Linear
 from torch.utils.tensorboard import SummaryWriter
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print("当前运行设备：{}".format(device))
+
 class Moli(nn.Module):
     # def __init__(self):
     #     super(Moli, self).__init__()
@@ -48,10 +51,11 @@ class Moli(nn.Module):
         return x
 
 moli = Moli()
+moli = moli.to(device)
 print(moli)
 
 # 测试前向传播
-input = torch.ones((64, 3, 32, 32))  # 模拟一个 batch 的输入
+input = torch.ones((64, 3, 32, 32), device=device)  # 模拟一个 batch 的输入
 output = moli(input)
 print(output.shape)  # [64, 10]
 

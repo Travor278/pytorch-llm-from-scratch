@@ -5,6 +5,9 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 import time
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print("当前训练设备：{}".format(device))
+
 train_data = torchvision.datasets.CIFAR10(root='./dataset2', train=True, download=True, 
                                          transform=torchvision.transforms.ToTensor())
 test_data = torchvision.datasets.CIFAR10(root='./dataset2', train=False, download=True, 
@@ -39,11 +42,11 @@ class Moli(nn.Module):
     def forward(self, x):
         return self.model(x)
 moli = Moli()
-moli = moli.cuda()  # 将模型移动到GPU上
+moli = moli.to(device)  # 自动选择 GPU / CPU
 
 # 损失函数
 loss_fn = torch.nn.CrossEntropyLoss()
-loss_fn = loss_fn.cuda()  # 将损失函数移动到GPU上
+loss_fn = loss_fn.to(device)  # 自动选择 GPU / CPU
 
 # 优化器(随机梯度下降)
 learning_rate = 0.01
@@ -66,8 +69,8 @@ for i in range(epoch):
     moli.train()  # 将模型设置为训练模式
     for data in train_dataloader:
         imgs, targets = data
-        imgs = imgs.cuda()  # 将输入数据移动到GPU上
-        targets = targets.cuda()  # 将目标数据移动到GPU上
+        imgs = imgs.to(device)
+        targets = targets.to(device)
         outputs = moli(imgs)
         loss = loss_fn(outputs, targets)
 
@@ -90,8 +93,8 @@ for i in range(epoch):
     with torch.no_grad():
         for data in test_dataloader:
             imgs, targets = data
-            imgs = imgs.cuda()  # 将输入数据移动到GPU上
-            targets = targets.cuda()  # 将目标数据移动到GPU上
+            imgs = imgs.to(device)
+            targets = targets.to(device)
             outputs = moli(imgs)
             loss = loss_fn(outputs, targets)
             total_test_loss += loss.item()

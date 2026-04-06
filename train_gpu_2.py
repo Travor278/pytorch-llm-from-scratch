@@ -6,7 +6,8 @@ from torch.utils.tensorboard import SummaryWriter
 import time
 
 # 定义训练的设备
-device = torch.device("cuda")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print("当前训练设备：{}".format(device))
 # 准备数据集
 train_data = torchvision.datasets.CIFAR10(root='./dataset2', train=True, download=True, 
                                          transform=torchvision.transforms.ToTensor())

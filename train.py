@@ -4,6 +4,9 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from model import Moli
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print("当前训练设备：{}".format(device))
+
 train_data = torchvision.datasets.CIFAR10(root='./dataset2', train=True, download=True, 
                                          transform=torchvision.transforms.ToTensor())
 test_data = torchvision.datasets.CIFAR10(root='./dataset2', train=False, download=True, 
@@ -21,9 +24,11 @@ test_dataloader = DataLoader(test_data, batch_size=64)
 
 # 创建网络模型
 moli = Moli()
+moli = moli.to(device)
 
 # 损失函数
 loss_fn = torch.nn.CrossEntropyLoss()
+loss_fn = loss_fn.to(device)
 
 # 优化器(随机梯度下降)
 learning_rate = 0.01
@@ -46,6 +51,8 @@ for i in range(epoch):
     moli.train()  # 将模型设置为训练模式
     for data in train_dataloader:
         imgs, targets = data
+        imgs = imgs.to(device)
+        targets = targets.to(device)
         outputs = moli(imgs)
         loss = loss_fn(outputs, targets)
 
@@ -66,6 +73,8 @@ for i in range(epoch):
     with torch.no_grad():
         for data in test_dataloader:
             imgs, targets = data
+            imgs = imgs.to(device)
+            targets = targets.to(device)
             outputs = moli(imgs)
             loss = loss_fn(outputs, targets)
             total_test_loss += loss.item()

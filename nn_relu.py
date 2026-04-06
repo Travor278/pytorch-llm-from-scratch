@@ -6,6 +6,8 @@ from torch.nn import Sigmoid
 from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data import DataLoader
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print("当前运行设备：{}".format(device))
 
 input = torch.tensor([[-1, -0.5],
                       [-1, 3]])
@@ -31,13 +33,15 @@ class Moli(nn.Module): # 定义一个名为 Moli 的神经网络类，继承自 
         return output
 
 moli = Moli()
+moli = moli.to(device)
 
 writer = SummaryWriter("logs_relu")
 step = 0
 for data in dataloader:
     imgs, targets = data
     writer.add_images("input", imgs, global_step=step)
-    output = moli(imgs)
+    imgs = imgs.to(device)
+    output = moli(imgs).cpu()
     writer.add_images("output", output, step)
     step += 1
 
