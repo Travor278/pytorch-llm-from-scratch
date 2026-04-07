@@ -131,6 +131,10 @@ From-scratch PyTorch study notes covering nine tracks:
 |------|-------------|
 | `sampling_strategies.py` | Greedy, temperature sampling, Top-k, Top-p (nucleus, Holtzman 2020), repetition penalty |
 | `beam_search.py` | Beam search algorithm, length penalty (Wu et al. 2016), diverse beam search concept, strategy selection guide |
+| `systematic_evaluation.py` | Systematic LLM evaluation overview: offline objective metrics, judge-based open-ended evaluation, pairwise battle, win rate, Elo, bootstrap intuition |
+| `mmlu_eval.py` | Teaching-style MMLU evaluation: few-shot multiple-choice prompt building, answer parsing, per-subject accuracy, macro average |
+| `mt_bench_eval.py` | Teaching-style MT-Bench pipeline: multi-turn question set, answer generation, judge scoring, turn/category aggregation |
+| `lmsys_arena_eval.py` | Teaching-style LMSYS/Chatbot Arena pipeline: anonymized A/B battle, vote logging, win rate and Elo update |
 
 #### `multimodal/`
 

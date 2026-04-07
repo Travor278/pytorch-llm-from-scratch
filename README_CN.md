@@ -131,6 +131,10 @@
 |------|------|
 | `sampling_strategies.py` | 贪心、温度采样、Top-k、Top-p（Nucleus，Holtzman 2020）、重复惩罚 |
 | `beam_search.py` | Beam Search 算法、长度惩罚（Wu 2016）、Diverse Beam Search 概念、解码策略选型 |
+| `systematic_evaluation.py` | 系统化 LLM 评估总览：离线客观指标、judge 开放题评估、pairwise battle、胜率、Elo、bootstrap 直觉 |
+| `mmlu_eval.py` | 教学版 MMLU 评估：few-shot 多选题 prompt 构造、答案解析、按学科准确率与宏平均 |
+| `mt_bench_eval.py` | 教学版 MT-Bench 流程：多轮问题集、模型生成、judge 打分、turn/category 汇总 |
+| `lmsys_arena_eval.py` | 教学版 LMSYS/Chatbot Arena 流程：匿名 A/B 对战、投票记录、胜率与 Elo 更新 |
 
 #### `multimodal/`（多模态专项）
 
