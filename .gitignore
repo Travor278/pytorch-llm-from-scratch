@@ -1,16 +1,21 @@
 # Datasets (too large for git)
-data/
-dataset/
-dataset2/
+/data/
+/dataset/
+/dataset2/
+/mini_llm/dataset/*
+!/mini_llm/dataset/README.md
 
 # Saved model files
 *.pth
+/mini_llm/out/
+/mini_llm/checkpoints/
 
 # TensorBoard logs
-logs/
-dataloader/
-p10/
-runs/
+/logs/
+/dataloader/
+/p10/
+/runs/
+/xiaotudui/runs/
 events.out.tfevents.*
 
 # Local agent/tool config

@@ -2,8 +2,8 @@
 
 # PyTorch Learning Notes
 
-From-scratch PyTorch study notes covering nine tracks:
-- Autograd fundamentals (`00` to `08`)
+From-scratch PyTorch study notes covering ten tracks:
+- Autograd fundamentals (`autograd/00` to `autograd/08`)
 - Dataset / DataLoader / TensorBoard practice
 - `nn.Module` layers, loss functions, and network building
 - Model saving, loading, and pretrained models
@@ -11,6 +11,7 @@ From-scratch PyTorch study notes covering nine tracks:
 - Advanced topic modules: training engineering, loss functions, model architecture, PEFT, generative models, evaluation & inference, multimodal
 - Transformer (Encoder-Decoder, paper reproduction from scratch)
 - GPT (Decoder-only LLM with RoPE, KV Cache, BPE tokenizer)
+- `mini_llm/`: MiniMind-style small LLM engineering track for pretraining, SFT, LoRA, DPO/RL, and serving
 
 ## Project Structure
 
@@ -18,66 +19,66 @@ From-scratch PyTorch study notes covering nine tracks:
 
 | File | Topic | Description |
 |------|-------|-------------|
-| `00_interactive_playground.py` | Interactive Playground | PyTorch check, simple autograd demo, Jacobian calculation |
-| `01_manual_gradient.py` | Manual Gradient | Hand-written chain rule + gradient descent for `y = 2x + 1` |
-| `02_autograd_basics.py` | Autograd Basics | `requires_grad`, `backward()`, `no_grad()`, accumulation pitfall |
-| `03_computational_graph.py` | Computational Graph | `grad_fn`, leaf tensors, `retain_graph`, `detach()` |
-| `04_hooks.py` | Hook Mechanism | Tensor/Module hooks, gradient inspection & modification |
-| `05_jacobian_and_advanced_autograd.py` | Jacobian & Higher-Order Derivatives | VJP, Jacobian, Hessian basics |
-| `06_gradient_accumulation_and_tricks.py` | Training Tricks | Accumulation, clipping, grad check, parameter freezing |
-| `07_custom_autograd_function.py` | Custom Function | Custom ReLU / STE / multi-input with `gradcheck` |
-| `08_tensor_operations_and_gpu.py` | Tensor Ops & GPU | Creation, reshape, indexing, broadcasting, GPU, NumPy interop |
+| `autograd/00_interactive_playground.py` | Interactive Playground | PyTorch check, simple autograd demo, Jacobian calculation |
+| `autograd/01_manual_gradient.py` | Manual Gradient | Hand-written chain rule + gradient descent for `y = 2x + 1` |
+| `autograd/02_autograd_basics.py` | Autograd Basics | `requires_grad`, `backward()`, `no_grad()`, accumulation pitfall |
+| `autograd/03_computational_graph.py` | Computational Graph | `grad_fn`, leaf tensors, `retain_graph`, `detach()` |
+| `autograd/04_hooks.py` | Hook Mechanism | Tensor/Module hooks, gradient inspection & modification |
+| `autograd/05_jacobian_and_advanced_autograd.py` | Jacobian & Higher-Order Derivatives | VJP, Jacobian, Hessian basics |
+| `autograd/06_gradient_accumulation_and_tricks.py` | Training Tricks | Accumulation, clipping, grad check, parameter freezing |
+| `autograd/07_custom_autograd_function.py` | Custom Function | Custom ReLU / STE / multi-input with `gradcheck` |
+| `autograd/08_tensor_operations_and_gpu.py` | Tensor Ops & GPU | Creation, reshape, indexing, broadcasting, GPU, NumPy interop |
 
 ### 2) Data Pipeline & TensorBoard
 
 | File | Description |
 |------|-------------|
-| `generate_labels.py` | Generate label txt files for ants/bees images |
-| `read_data.py` | Build a custom `Dataset` for hymenoptera images |
-| `test_Tf.py` | Basic `transforms.ToTensor()` usage |
-| `Useful_TF.py` | Common transforms: `Normalize`, `Resize`, `Compose`, `RandomCrop` |
-| `test_tb.py` | TensorBoard basics for image/scalar logging |
-| `dataset_transform.py` | CIFAR-10 download + transform pipeline + TensorBoard preview |
-| `dataloader.py` | Load CIFAR-10 with `DataLoader` and log batches by epoch |
+| `xiaotudui/generate_labels.py` | Generate label txt files for ants/bees images |
+| `xiaotudui/read_data.py` | Build a custom `Dataset` for hymenoptera images |
+| `xiaotudui/test_Tf.py` | Basic `transforms.ToTensor()` usage |
+| `xiaotudui/Useful_TF.py` | Common transforms: `Normalize`, `Resize`, `Compose`, `RandomCrop` |
+| `xiaotudui/test_tb.py` | TensorBoard basics for image/scalar logging |
+| `xiaotudui/dataset_transform.py` | CIFAR-10 download + transform pipeline + TensorBoard preview |
+| `xiaotudui/dataloader.py` | Load CIFAR-10 with `DataLoader` and log batches by epoch |
 
 ### 3) nn.Module — Layers, Loss & Building Networks
 
 | File | Description |
 |------|-------------|
-| `nn_module.py` | Minimal custom `nn.Module` (`forward` demo) |
-| `nn_relu.py` | `ReLU` / `Sigmoid` activation demo on CIFAR-10 batches with TensorBoard |
-| `nn_maxpool.py` | `MaxPool2d` feature downsampling demo (`ceil_mode=True`) with TensorBoard |
-| `nn_conv.py` | `torch.nn.functional.conv2d` with stride/padding comparison |
-| `nn_conv2d.py` | `nn.Conv2d` on CIFAR-10 + input/output visualization in TensorBoard |
-| `nn_linear.py` | `nn.Linear` basics: flatten CIFAR-10 images and pass through a fully-connected layer |
-| `nn_seq.py` | Build a Conv→Pool→Flatten→Linear network with `nn.Sequential`; visualize compute graph in TensorBoard |
-| `nn_loss.py` | Common loss functions: `L1Loss`, `MSELoss`, `CrossEntropyLoss` |
-| `nn_loss_network.py` | Full CNN (Conv2d + MaxPool2d + Flatten + Linear) + loss computation + `backward()` |
-| `nn_optim.py` | Add `torch.optim.SGD` to the full network: `zero_grad` → `backward` → `step` complete training loop over 20 epochs |
-| `nn_common_layers.py` | Overview of other common layers: `BatchNorm2d`, `Dropout`, `AvgPool2d`, `AdaptiveAvgPool2d`, `Flatten`, `Embedding` |
+| `xiaotudui/nn_module.py` | Minimal custom `nn.Module` (`forward` demo) |
+| `xiaotudui/nn_relu.py` | `ReLU` / `Sigmoid` activation demo on CIFAR-10 batches with TensorBoard |
+| `xiaotudui/nn_maxpool.py` | `MaxPool2d` feature downsampling demo (`ceil_mode=True`) with TensorBoard |
+| `xiaotudui/nn_conv.py` | `torch.nn.functional.conv2d` with stride/padding comparison |
+| `xiaotudui/nn_conv2d.py` | `nn.Conv2d` on CIFAR-10 + input/output visualization in TensorBoard |
+| `xiaotudui/nn_linear.py` | `nn.Linear` basics: flatten CIFAR-10 images and pass through a fully-connected layer |
+| `xiaotudui/nn_seq.py` | Build a Conv→Pool→Flatten→Linear network with `nn.Sequential`; visualize compute graph in TensorBoard |
+| `xiaotudui/nn_loss.py` | Common loss functions: `L1Loss`, `MSELoss`, `CrossEntropyLoss` |
+| `xiaotudui/nn_loss_network.py` | Full CNN (Conv2d + MaxPool2d + Flatten + Linear) + loss computation + `backward()` |
+| `xiaotudui/nn_optim.py` | Add `torch.optim.SGD` to the full network: `zero_grad` → `backward` → `step` complete training loop over 20 epochs |
+| `xiaotudui/nn_common_layers.py` | Overview of other common layers: `BatchNorm2d`, `Dropout`, `AvgPool2d`, `AdaptiveAvgPool2d`, `Flatten`, `Embedding` |
 
 ### 4) Model Saving, Loading & Pretrained Models
 
 | File | Description |
 |------|-------------|
-| `model.py` | Standalone `Moli` CNN definition (imported by `train.py`) |
-| `model_save.py` | Two save strategies: full model (`torch.save(model)`) vs state dict (`model.state_dict()`); custom class save trap demo |
-| `model_load.py` | Load method 1 with `weights_only=False`; load method 2 with `load_state_dict`; PyTorch 2.6 pitfall notes |
-| `model_pretrained.py` | Load VGG16 with/without pretrained weights; modify classifier by `add_module` or layer replacement |
+| `xiaotudui/model.py` | Standalone `Moli` CNN definition (imported by `xiaotudui/train.py`) |
+| `xiaotudui/model_save.py` | Two save strategies: full model (`torch.save(model)`) vs state dict (`model.state_dict()`); custom class save trap demo |
+| `xiaotudui/model_load.py` | Load method 1 with `weights_only=False`; load method 2 with `load_state_dict`; PyTorch 2.6 pitfall notes |
+| `xiaotudui/model_pretrained.py` | Load VGG16 with/without pretrained weights; modify classifier by `add_module` or layer replacement |
 
 ### 5) Full Training Loop
 
 | File | Description |
 |------|-------------|
-| `train.py` | Complete CPU training: data → model → loss → optimizer → train/eval loop → TensorBoard → save checkpoint each epoch |
-| `train_gpu_1.py` | GPU training using `.cuda()` — hardcoded CUDA device, add timing with `time` module |
-| `train_gpu_2.py` | GPU training using `.to(device)` — recommended pattern, device-agnostic (swap `"cuda"` to `"cpu"` freely) |
+| `xiaotudui/train.py` | Complete CPU training: data → model → loss → optimizer → train/eval loop → TensorBoard → save checkpoint each epoch |
+| `xiaotudui/train_gpu_1.py` | GPU training using `.cuda()` — hardcoded CUDA device, add timing with `time` module |
+| `xiaotudui/train_gpu_2.py` | GPU training using `.to(device)` — recommended pattern, device-agnostic (swap `"cuda"` to `"cpu"` freely) |
 
 ### 6) Quick Console Check
 
 | File | Description |
 |------|-------------|
-| `Console.py` | Simple CUDA availability and `torch` API quick inspection snippets |
+| `xiaotudui/Console.py` | Simple CUDA availability and `torch` API quick inspection snippets |
 
 ---
 
@@ -203,6 +204,26 @@ python GPT/sample.py --ckpt GPT/checkpoints/gpt_char_best.pt \
 
 ---
 
+### 10) mini_llm/
+
+MiniMind-style small LLM engineering track. It does not reuse the teaching
+`GPT/` implementation; it is organized as a project that can grow into a
+trainable, tunable, evaluable, and servable stack.
+
+| Path | Description |
+|------|-------------|
+| `mini_llm/model/` | Model structure: config, Dense/MoE decoder-only model, LoRA, RoPE/GQA/KV Cache |
+| `mini_llm/trainer/` | Training entrypoints: tokenizer, pretrain, full_sft, lora, dpo, ppo, grpo, agent, distillation |
+| `mini_llm/scripts/` | Engineering scripts: CLI chat, conversion, tool-call eval, OpenAI API serving, WebUI |
+| `mini_llm/dataset/` | Local JSONL data directory; real data is ignored, format notes are tracked |
+| `mini_llm/eval_llm.py` | Inference and evaluation entrypoint |
+
+Current status: engineering scaffold. Next priorities are
+`model/model_minimind.py`, then `trainer/train_pretrain.py` and
+`trainer/train_full_sft.py`.
+
+---
+
 ## Datasets and Local Paths
 
 - `data/`: MNIST
@@ -220,11 +241,12 @@ pip install torch torchvision tensorboard tqdm
 
 ## Suggested Learning Path
 
-1. `00` → `08`: Autograd core
-2. Transforms / Dataset scripts → DataLoader / TensorBoard
-3. `nn` layers: activations → convolution → linear → Sequential → loss → optimizer → common layers
-4. Model persistence: `model_save.py` → `model_load.py` → `model_pretrained.py`
-5. Full training loop: `train.py` (CPU) → `train_gpu_1.py` → `train_gpu_2.py`
+1. `autograd/00` → `autograd/08`: Autograd core
+2. `xiaotudui/` transforms / Dataset scripts → DataLoader / TensorBoard
+3. `xiaotudui/nn` layers: activations → convolution → linear → Sequential → loss → optimizer → common layers
+4. Model persistence: `xiaotudui/model_save.py` → `xiaotudui/model_load.py` → `xiaotudui/model_pretrained.py`
+5. Full training loop: `xiaotudui/train.py` (CPU) → `xiaotudui/train_gpu_1.py` → `xiaotudui/train_gpu_2.py`
 6. Advanced modules: `training_engineering/`, `model_architecture/`, `loss_functions/`, `peft/`, `generative_models/`, `evaluation_inference/`, `multimodal/`
 7. `Transformer/`: build an Encoder-Decoder Transformer from the paper
 8. `GPT/`: build a Decoder-only GPT, train on real text, generate samples
+9. `mini_llm/`: MiniMind-style engineering path, from model core to pretraining, SFT, alignment, and serving
